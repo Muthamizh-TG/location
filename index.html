@@ -1,34 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Exact User Location</title>
+  <title>Get My Location Name</title>
 </head>
 <body>
-  <h2 id="status">Getting your exact location... </h2>
-  <p id="location"></p>
+  <h2 id="status">Finding your exact location...</h2>
+  <p id="coords"></p>
+  <p id="place"></p>
 
   <script>
     const status = document.getElementById("status");
-    const locationDisplay = document.getElementById("location");
+    const coords = document.getElementById("coords");
+    const place = document.getElementById("place");
 
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        function(position) {
+        async function(position) {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
-          const accuracy = position.coords.accuracy;
 
           status.innerText = "Exact location access granted";
-          locationDisplay.innerText = 
-            `Latitude: ${lat.toFixed(6)}\nLongitude: ${lon.toFixed(6)}\n Accuracy: ${accuracy} meters`;
+          coords.innerText = `Latitude: ${lat.toFixed(6)}\nLongitude: ${lon.toFixed(6)}`;
+
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+            const data = await res.json();
+
+            place.innerText = `You are at: ${data.address.city || data.address.town || data.address.village || "Unknown place"}, ${data.address.country}`;
+          } catch (error) {
+            place.innerText = "Could not fetch place name";
+          }
         },
         function(error) {
-          status.innerText = "Location access denied or failed ";
-          locationDisplay.innerText = "Error: " + error.message;
+          status.innerText = "Location access denied or failed";
+          coords.innerText = "Error: " + error.message;
         }
       );
     } else {
-      status.innerText = "Geolocation is not supported by this browser ";
+      status.innerText = "Geolocation is not supported by this browser";
     }
   </script>
 </body>
