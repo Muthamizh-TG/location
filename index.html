@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Find My City</title>
+</head>
+<body>
+  <h2 id="location">Finding your city...</h2>
+
+  <script>
+    // Global City List
+    const cities = [
+      // 🇮🇳 India
+      { name: "Chennai",      lat: 13.0827, lon: 80.2707 },
+      { name: "Madurai",      lat: 9.9252,  lon: 78.1198 },
+      { name: "Mumbai",       lat: 19.0760, lon: 72.8777 },
+      { name: "Bangalore",    lat: 12.9716, lon: 77.5946 },
+      { name: "Delhi",        lat: 28.6139, lon: 77.2090 },
+
+      // 🇺🇸 USA
+      { name: "New York",     lat: 40.7128, lon: -74.0060 },
+      { name: "Los Angeles",  lat: 34.0522, lon: -118.2437 },
+      { name: "San Francisco",lat: 37.7749, lon: -122.4194 },
+
+      // 🇸🇬 Singapore
+      { name: "Singapore",    lat: 1.3521,  lon: 103.8198 }
+    ];
+
+    // Haversine Distance Formula
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const toRad = deg => deg * Math.PI / 180;
+      const R = 6371; // Earth radius in KM
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // Find Closest City
+    function findNearestCity(lat, lon) {
+      let closest = cities[0];
+      let minDist = getDistance(lat, lon, closest.lat, closest.lon);
+
+      for (let i = 1; i < cities.length; i++) {
+        const dist = getDistance(lat, lon, cities[i].lat, cities[i].lon);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = cities[i];
+        }
+      }
+      return closest;
+    }
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+
+        const nearestCity = findNearestCity(userLat, userLon);
+
+        document.getElementById("location").innerText = 
+          `You are closest to: ${nearestCity.name} `;
+      }, function(error) {
+        document.getElementById("location").innerText = 
+          "Oops! Location access denied ";
+      });
+    } else {
+      document.getElementById("location").innerText = 
+        "Geolocation not supported in this browser";
+    }
+  </script>
+</body>
+</html>
